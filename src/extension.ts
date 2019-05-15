@@ -3,20 +3,16 @@ import * as path from "path";
 import * as unzipper from 'unzipper';
 import * as request from 'request-promise';
 
-const API_URL = "https://start.vertx.io";
+const DEFAULT_API_URL = "https://start.vertx.io";
 const LANGUAGES = [{ label: "Java", value: "java", }, { label: "Kotlin", value: "kotlin" }];
 const BUILD_TOOLS = [{ label: "Maven", value: "maven", }, { label: "Gradle", value: "gradle" }];
 const JDK_VERSIONS = [{ label: "JDK 1.8", value: "1.8", }, { label: "JDK 11", value: "11" }];
 
-const CONFIG_API_URL = "vertx-starter.apiUrl";
-const CONFIG_DEFAULTS = "vertx-starter.defaults";
-const CONFIG_DEFAULTS_GROUP_ID = "groupId";
-const CONFIG_DEFAULTS_ARTIFACT_ID = "artifactId";
-const CONFIG_DEFAULTS_BUILD_TOOL = "buildTool";
-const CONFIG_DEFAULTS_LANGUAGE = "language";
-const CONFIG_DEFAULTS_VERTX_VERSION = "vertxVersion";
-const CONFIG_DEFAULTS_PACKAGE_NAME = "packageName";
-const CONFIG_DEFAULTS_JDK_VERSION = "jdkVersion";
+const CONFIG_SECTION_VERTX_STARTER = "vertx-starter";
+const CONFIG_DEFAULT_API_URL = "apiUrl";
+const CONFIG_DEFAULT_GROUP_ID = "defaultGroupId";
+const CONFIG_DEFAULT_ARTIFACT_ID = "defaultArtifactId";
+const CONFIG_DEFAULT_PACKAGE_NAME = "defaultPackageName";
 
 const ID_REGEXP = RegExp('^[A-Za-z0-9_\\-.]+$');
 const PACKAGE_NAME_REGEXP = RegExp('^[A-Za-z0-9_\\-.]+$');
@@ -53,7 +49,11 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 async function createVertxProject() {
-	const metadata = await getMetadata();
+	let apiUrl = vscode.workspace.getConfiguration(CONFIG_SECTION_VERTX_STARTER).get<string>(CONFIG_DEFAULT_API_URL);
+	if (!apiUrl) {
+		apiUrl = DEFAULT_API_URL;
+	}
+	const metadata = await getMetadata(apiUrl);
 	const versions = metadata.versions.map((it) => {
 		return {
 			value: it.number,
@@ -63,10 +63,6 @@ async function createVertxProject() {
 		};
 	});
 
-	let defaultVertxVersion = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_VERTX_VERSION);
-	if (!defaultVertxVersion) {
-		defaultVertxVersion = metadata.defaults.vertxVersion;
-	}
 	const vertxVersion = await vscode.window.showQuickPick(
 		versions,
 		{
@@ -79,10 +75,6 @@ async function createVertxProject() {
 		return;
 	}
 
-	let defaultLanguage = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_LANGUAGE);
-	if (!defaultLanguage) {
-		defaultLanguage = metadata.defaults.language;
-	}
 	const language = await vscode.window.showQuickPick(
 		LANGUAGES,
 		{ ignoreFocusOut: true, placeHolder: "Choose a language" }
@@ -92,10 +84,6 @@ async function createVertxProject() {
 		}
 	});
 
-	let defaultBuildTool = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_BUILD_TOOL);
-	if (!defaultBuildTool) {
-		defaultBuildTool = metadata.defaults.buildTool;
-	}
 	const buildTool = await vscode.window.showQuickPick(
 		BUILD_TOOLS,
 		{ ignoreFocusOut: true, placeHolder: "Project a build tool" }
@@ -105,7 +93,7 @@ async function createVertxProject() {
 		}
 	});
 
-	let defaultGroupId = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_GROUP_ID);
+	let defaultGroupId = vscode.workspace.getConfiguration(CONFIG_SECTION_VERTX_STARTER).get<string>(CONFIG_DEFAULT_GROUP_ID);
 	if (!defaultGroupId) {
 		defaultGroupId = metadata.defaults.groupId;
 	}
@@ -122,7 +110,7 @@ async function createVertxProject() {
 		return;
 	}
 
-	let defaultArtifactId = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_ARTIFACT_ID);
+	let defaultArtifactId = vscode.workspace.getConfiguration(CONFIG_SECTION_VERTX_STARTER).get<string>(CONFIG_DEFAULT_ARTIFACT_ID);
 	if (!defaultArtifactId) {
 		defaultArtifactId = metadata.defaults.defaultArtifactId;
 	}
@@ -149,7 +137,7 @@ async function createVertxProject() {
 		{ ignoreFocusOut: true, placeHolder: "Define a custom package Name?" }
 	);
 	if (hasCustomPackageName && hasCustomPackageName === 'Yes') {
-		let defaultPackageName = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_PACKAGE_NAME);
+		let defaultPackageName = vscode.workspace.getConfiguration(CONFIG_SECTION_VERTX_STARTER).get<string>(CONFIG_DEFAULT_PACKAGE_NAME);
 		if (!defaultPackageName) {
 			defaultPackageName = "";
 		}
@@ -166,10 +154,6 @@ async function createVertxProject() {
 		}
 	}
 
-	let defaultJdkVersion = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_JDK_VERSION);
-	if (!defaultJdkVersion) {
-		defaultJdkVersion = metadata.defaults.jdkVersion;
-	}
 	const jdkVersion = await vscode.window.showQuickPick(
 		JDK_VERSIONS,
 		{ ignoreFocusOut: true, placeHolder: "Choose a JDK version" }
@@ -189,7 +173,7 @@ async function createVertxProject() {
 
 	const projectDir = vscode.Uri.file(path.join(targetDir[0].fsPath, artifactId));
 
-	var projectUrl = `${API_URL}/starter.zip?` +
+	var projectUrl = `${apiUrl}/starter.zip?` +
 		`groupId=${groupId}&` +
 		`artifactId=${artifactId}&` +
 		`buildTool=${buildTool}&` +
@@ -204,8 +188,8 @@ async function createVertxProject() {
 	let success = await vscode.commands.executeCommand('vscode.openFolder', projectDir, true);
 }
 
-async function getMetadata(): Promise<Metadata> {
-	return await request.get(`${API_URL}/metadata`)
+async function getMetadata(apiUrl: string): Promise<Metadata> {
+	return await request.get(`${apiUrl}/metadata`)
 		.then((body) => {
 			const metadata: Metadata = JSON.parse(body);
 			return metadata;

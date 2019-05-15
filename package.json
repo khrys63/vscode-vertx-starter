@@ -19,7 +19,40 @@
 				"command": "vertxStarter.createVertxProject",
 				"title": "Create a Vert.x project"
 			}
-		]
+		],
+		"configuration": {
+			"title": "Vert.x Starter",
+			"properties": {
+				"vertx-starter.apiUrl": {
+					"default": "https://start.vertx.io/",
+					"type": "string",
+					"pattern": "https?://.+",
+					"scope": "window",
+					"description": "Vert.x API base URL"
+				},
+				"vertx-starter.defaultGroupId": {
+					"default": "com.example",
+					"type": "string",
+					"pattern": "^[A-Za-z0-9_\\-.]+$",
+					"scope": "window",
+					"description": "Default Group Id"
+				},
+				"vertx-starter.defaultArtifactId": {
+					"default": "starter",
+					"type": "string",
+					"pattern": "^[A-Za-z0-9_\\-.]+$",
+					"scope": "window",
+					"description": "Default Artifact Id"
+				},
+				"vertx-starter.defaultPackageName": {
+					"default": "com.example.starter",
+					"type": "string",
+					"pattern": "^[A-Za-z0-9_\\-.]+$",
+					"scope": "window",
+					"description": "Default package name"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
