@@ -8,6 +8,16 @@ const LANGUAGES = [{ label: "Java", value: "java", }, { label: "Kotlin", value: 
 const BUILD_TOOLS = [{ label: "Maven", value: "maven", }, { label: "Gradle", value: "gradle" }];
 const JDK_VERSIONS = [{ label: "JDK 1.8", value: "1.8", }, { label: "JDK 11", value: "11" }];
 
+const CONFIG_API_URL = "vertx-starter.apiUrl";
+const CONFIG_DEFAULTS = "vertx-starter.defaults";
+const CONFIG_DEFAULTS_GROUP_ID = "groupId";
+const CONFIG_DEFAULTS_ARTIFACT_ID = "artifactId";
+const CONFIG_DEFAULTS_BUILD_TOOL = "buildTool";
+const CONFIG_DEFAULTS_LANGUAGE = "language";
+const CONFIG_DEFAULTS_VERTX_VERSION = "vertxVersion";
+const CONFIG_DEFAULTS_PACKAGE_NAME = "packageName";
+const CONFIG_DEFAULTS_JDK_VERSION = "jdkVersion";
+
 const ID_REGEXP = RegExp('^[A-Za-z0-9_\\-.]+$');
 const PACKAGE_NAME_REGEXP = RegExp('^[A-Za-z0-9_\\-.]+$');
 
@@ -53,15 +63,26 @@ async function createVertxProject() {
 		};
 	});
 
+	let defaultVertxVersion = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_VERTX_VERSION);
+	if (!defaultVertxVersion) {
+		defaultVertxVersion = metadata.defaults.vertxVersion;
+	}
 	const vertxVersion = await vscode.window.showQuickPick(
 		versions,
-		{ ignoreFocusOut: true, placeHolder: "Choose a Vert.x version" }
+		{
+			ignoreFocusOut: true,
+			placeHolder: "Choose a Vert.x version"
+		}
 	);
 	if (!vertxVersion) {
 		vscode.window.showErrorMessage("Impossible to create Vert.x Project: No Vert.x version provided.");
 		return;
 	}
 
+	let defaultLanguage = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_LANGUAGE);
+	if (!defaultLanguage) {
+		defaultLanguage = metadata.defaults.language;
+	}
 	const language = await vscode.window.showQuickPick(
 		LANGUAGES,
 		{ ignoreFocusOut: true, placeHolder: "Choose a language" }
@@ -71,6 +92,10 @@ async function createVertxProject() {
 		}
 	});
 
+	let defaultBuildTool = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_BUILD_TOOL);
+	if (!defaultBuildTool) {
+		defaultBuildTool = metadata.defaults.buildTool;
+	}
 	const buildTool = await vscode.window.showQuickPick(
 		BUILD_TOOLS,
 		{ ignoreFocusOut: true, placeHolder: "Project a build tool" }
@@ -80,7 +105,10 @@ async function createVertxProject() {
 		}
 	});
 
-	const defaultGroupId = metadata.defaults.groupId;
+	let defaultGroupId = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_GROUP_ID);
+	if (!defaultGroupId) {
+		defaultGroupId = metadata.defaults.groupId;
+	}
 	const groupId = await vscode.window.showInputBox(
 		{
 			ignoreFocusOut: true,
@@ -94,7 +122,10 @@ async function createVertxProject() {
 		return;
 	}
 
-	const defaultArtifactId = metadata.defaults.artifactId;
+	let defaultArtifactId = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_ARTIFACT_ID);
+	if (!defaultArtifactId) {
+		defaultArtifactId = metadata.defaults.defaultArtifactId;
+	}
 	const artifactId = await vscode.window.showInputBox(
 		{
 			ignoreFocusOut: true,
@@ -118,10 +149,15 @@ async function createVertxProject() {
 		{ ignoreFocusOut: true, placeHolder: "Define a custom package Name?" }
 	);
 	if (hasCustomPackageName && hasCustomPackageName === 'Yes') {
+		let defaultPackageName = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_PACKAGE_NAME);
+		if (!defaultPackageName) {
+			defaultPackageName = "";
+		}
 		let customPackageName = await vscode.window.showInputBox(
 			{
 				ignoreFocusOut: true,
 				placeHolder: "Your project package name",
+				value: defaultPackageName,
 				validateInput: (it) => PACKAGE_NAME_REGEXP.test(it) ? null : "Package name invalid"
 			}
 		);
@@ -130,6 +166,10 @@ async function createVertxProject() {
 		}
 	}
 
+	let defaultJdkVersion = vscode.workspace.getConfiguration(CONFIG_DEFAULTS).get<string>(CONFIG_DEFAULTS_JDK_VERSION);
+	if (!defaultJdkVersion) {
+		defaultJdkVersion = metadata.defaults.jdkVersion;
+	}
 	const jdkVersion = await vscode.window.showQuickPick(
 		JDK_VERSIONS,
 		{ ignoreFocusOut: true, placeHolder: "Choose a JDK version" }
