@@ -1,7 +1,9 @@
-import * as vscode from 'vscode';
+import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
-import * as unzipper from 'unzipper';
 import * as request from 'request-promise';
+import * as unzipper from 'unzipper';
+import * as vscode from 'vscode';
 
 const DEFAULT_API_URL = "https://start.vertx.io";
 const LANGUAGES = [{ label: "Java", value: "java", }, { label: "Kotlin", value: "kotlin" }];
@@ -163,15 +165,18 @@ async function createVertxProject() {
 		}
 	});
 
-	const targetDir = await vscode.window.showOpenDialog(
+	let targetDir = await vscode.window.showOpenDialog(
 		{ canSelectFiles: false, canSelectFolders: true, canSelectMany: false }
 	);
 	if (!(targetDir && targetDir[0])) {
 		vscode.window.showErrorMessage("Impossible to Create Vert.x Project: No directory provided.");
 		return;
 	}
-
 	const projectDir = vscode.Uri.file(path.join(targetDir[0].fsPath, artifactId));
+	if (fs.existsSync(projectDir.fsPath)) {
+		vscode.window.showErrorMessage(`Impossible to Create Vert.x Project: Directory ${projectDir} already exists.`);
+		return;
+	}
 
 	var projectUrl = `${apiUrl}/starter.zip?` +
 		`groupId=${groupId}&` +
@@ -197,7 +202,7 @@ async function getMetadata(apiUrl: string): Promise<Metadata> {
 }
 
 async function downloadProject(url: string, targetDir: vscode.Uri) {
-	return request.get(url, { headers: { 'User-Agent': 'vscode-vertx-starter' } }).pipe(unzipper.Extract({ path: targetDir.fsPath })).promise();
+	return request.get(url, { headers: { 'User-Agent': `vscode-vertx-starter/${os.platform}` } }).pipe(unzipper.Extract({ path: targetDir.fsPath })).promise();
 }
 
 export interface VertxDependencyItem {

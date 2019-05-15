@@ -19,7 +19,19 @@ What you can do:
 
 ## Extension Settings
 
-// TODO
+```
+//  Vert.x Starter API URL. If you have your own instance your should update this value.
+"vertx-starter.apiUrl": "https://start.vertx.io",
+
+// Default Group Id
+"vertx-starter.defaultGroupId": "com.example",
+
+// Default Artifact Id
+"vertx-starter.defaultArtifactId": "starter",
+
+// Default Package Name
+"vertx-starter.defaultPackageName": "com.example.starter"
+```
 
 ## Licensing
 
