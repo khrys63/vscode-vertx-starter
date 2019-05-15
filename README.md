@@ -20,7 +20,7 @@ What you can do:
 ## Extension Settings
 
 ```
-//  Vert.x Starter API URL. If you have your own instance your should update this value.
+// Vert.x Starter API URL. If you have your own instance your should update this value.
 "vertx-starter.apiUrl": "https://start.vertx.io",
 
 // Default Group Id
@@ -32,6 +32,13 @@ What you can do:
 // Default Package Name
 "vertx-starter.defaultPackageName": "com.example.starter"
 ```
+
+##  Analytics
+
+The Vert.x Starter contributors work hard to give you the best Developer eXperience. To do so, we need some hints.
+That's why we collect your platform: `'User-Agent': `vscode-vertx-starter/${os.platform}`.
+
+Either the VSCode extension and Vert.x Starter sources are available on Github. Feel free to contact us if you found  any privacy/analytics problem.
 
 ## Licensing
 
